@@ -26,7 +26,7 @@ cursor-agent -p --mode ask --trust [--model <モデル名>] --output-format json
 
 - `-p` は非対話実行。依頼文は標準入力から渡す。
 - `--mode ask` は、読み取り専用のモードで動かす指定。
-- モデル名は、役割のファイル（`config/roles/`）の候補の `model` 列から渡す。Cursor ではモデル名に推論量が含まれる（例: `gemini-4-carbon-medium`、`grok-4.7-high`）ので、`effort` 列は使わない。
+- モデル名は、役割のファイル（`config/roles/`）の候補の `model` 列から渡す。Cursor ではモデル名に推論量が含まれる（例: `gemini-4-neon-high`、`grok-4.7-high`）ので、`effort` 列は使わない。
 - **`dev-relay review` の `--model` と `--effort` は、Cursor のレビュアーには使えない**（終了コード 1）。Cursor ではモデルを変えると、送り先と課金の扱いが変わる。置き換えを許すと、送り先の許可と `metered` の判定をすり抜けてしまう。別のモデルを使いたいときは、`config/roles/` の役割のファイルに候補を足して、`--reviewer` で選ぶ。
 - `jq` が要る。標準出力の JSON を `jq` で読む。
 

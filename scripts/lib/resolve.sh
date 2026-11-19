@@ -202,7 +202,7 @@ candidate_reasons() {
 
 # 役割のファイルから、使える最初の候補を選ぶ。
 # 選んだ候補を R_ID R_BACKEND R_MODEL R_EFFORT R_BILLING R_VENDORS に、
-# 飛ばした候補と理由を R_SKIPPED（空白区切り。例: carbon(metered-off;vendor-not-allowed:cursor,google)）に入れる。
+# 飛ばした候補と理由を R_SKIPPED（空白区切り。例: neon-high(metered-off;vendor-not-allowed:cursor,google)）に入れる。
 # 選べたら 0、選べなければ 1。形式の壊れた行と、ファイルに無い指定の id は die する。
 # 利用者の上書きがあれば、既定値ではなく上書きのファイルを読む。
 # 呼ぶ前に probe_tools と load_vendors を呼んでおく。$(...) の中で呼ばない。
