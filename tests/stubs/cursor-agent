@@ -38,7 +38,7 @@ case "${1:-}" in
     else
       echo "auto - Auto (default)"
       echo "grok-4.7-high - Grok 4.7 High"
-      echo "gemini-4-carbon-medium - Gemini 4 Carbon Medium"
+      echo "gemini-4-neon-high - Gemini 4 Neon High"
     fi
     exit "${STUB_CURSOR_MODELS_EXIT:-0}" ;;
   status)

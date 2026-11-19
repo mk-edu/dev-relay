@@ -167,7 +167,7 @@ dr_in() {
 set_user_vendors() { dr config vendors --user "$1"; [ "$RC" -eq 0 ] || fail "config vendors --user $1 が失敗した"; }
 set_metered()      { dr config metered "$1"; [ "$RC" -eq 0 ] || fail "config metered $1 が失敗した"; }
 
-# 追加のレビュアーに Cursor（carbon）が選ばれる環境
+# 追加のレビュアーに Cursor（neon-high）が選ばれる環境
 cursor_extra_env() {
   new_env
   with_codex
@@ -403,7 +403,7 @@ t_doctor_user_openai() {
   assert_eq "$(kv role.code-review)" codex "role.code-review"
   assert_eq "$(kv role.code-review-extra)" claude "role.code-review-extra"
   skipped="$(kv role.code-review-extra.skipped)"
-  assert_contains "$skipped" "carbon(" "extra の skipped"
+  assert_contains "$skipped" "neon-high(" "extra の skipped"
   assert_contains "$skipped" "metered-off" "extra の skipped"
   assert_contains "$skipped" "vendor-not-allowed:cursor,google" "extra の skipped"
 }
@@ -531,8 +531,8 @@ t_extra_cursor() {
   res="$(last_line)"
   assert_file "$res"
   assert_has "$STUB_LOG" "--mode ask"
-  assert_has "$STUB_LOG" "--model gemini-4-carbon-medium"
-  assert_has "$res" "reviewer: carbon"
+  assert_has "$STUB_LOG" "--model gemini-4-neon-high"
+  assert_has "$res" "reviewer: neon-high"
   assert_has "$res" "billing: metered"
   assert_has "$res" "stub cursor review body"
   assert_has "$res" "tokens:"
@@ -543,7 +543,7 @@ t_extra_reviewer_not_allowed() {
   new_env; with_codex; with_cursor
   set_user_vendors openai
   set_metered auto
-  dr review code --intent "目的" --extra --reviewer carbon
+  dr review code --intent "目的" --extra --reviewer neon-high
   assert_rc 1
   assert_has "$T/err" "vendor-not-allowed"
   assert_eq "$(cursor_runs)" 0 "Cursor の実行回数"
@@ -1231,7 +1231,7 @@ t_check_cursor_models() {
   dr refresh check
   assert_rc 0
   assert_eq "$(kv added.cursor.models)" new-model-x "added.cursor.models"
-  assert_eq "$(kv removed.cursor.models)" gemini-4-carbon-medium "removed.cursor.models"
+  assert_eq "$(kv removed.cursor.models)" gemini-4-neon-high "removed.cursor.models"
 }
 
 write_codex_models() {
@@ -1279,7 +1279,7 @@ t_check_unavailable() {
   assert_rc 0
   assert_eq "$(kv unavailable.design-review)" "grok(grok-4.7-high)" "unavailable.design-review"
   assert_eq "$(kv unavailable.code-review)" "grok(grok-4.7-high)" "unavailable.code-review"
-  assert_eq "$(kv unavailable.code-review-extra)" "carbon(gemini-4-carbon-medium)" "unavailable.code-review-extra"
+  assert_eq "$(kv unavailable.code-review-extra)" "neon-high(gemini-4-neon-high)" "unavailable.code-review-extra"
   assert_eq "$(grep '^unavailable\.' "$T/out" | cut -d= -f1 | tr '\n' ' ')" "unavailable.design-review unavailable.code-review unavailable.code-review-extra " "役割の順"
 }
 
@@ -1502,16 +1502,16 @@ t_smoke_vendors() {
 t_smoke_metered() {
   need_jq || return 0
   smoke_env
-  dr smoke --reviewer carbon
+  dr smoke --reviewer neon-high
   assert_rc 0
-  assert_eq "$(kv smoke.carbon)" skipped "metered off の carbon"
-  assert_contains "$(kv smoke.carbon.reason)" "metered-off" "smoke.carbon.reason"
+  assert_eq "$(kv smoke.neon-high)" skipped "metered off の neon-high"
+  assert_contains "$(kv smoke.neon-high.reason)" "metered-off" "smoke.neon-high.reason"
   assert_eq "$(cursor_runs)" 0 "Cursor の実行回数"
   set_metered auto
-  dr smoke --reviewer carbon
+  dr smoke --reviewer neon-high
   assert_rc 0
-  assert_eq "$(kv smoke.carbon)" pass "metered auto の carbon"
-  assert_has "$STUB_LOG" "--model gemini-4-carbon-medium"
+  assert_eq "$(kv smoke.neon-high)" pass "metered auto の neon-high"
+  assert_has "$STUB_LOG" "--model gemini-4-neon-high"
 }
 
 t_smoke_cursor_changes_worktree() {
@@ -1552,7 +1552,7 @@ t_smoke_reviewer_filter() {
   assert_eq "$(kv smoke.codex)" pass "smoke.codex"
   assert_eq "$(kv smoke.grok)" "" "smoke.grok"
   assert_eq "$(kv smoke.claude)" "" "smoke.claude"
-  assert_eq "$(kv smoke.carbon)" "" "smoke.carbon"
+  assert_eq "$(kv smoke.neon-high)" "" "smoke.neon-high"
   dr smoke --reviewer codex --reviewer claude
   assert_rc 0
   assert_eq "$(kv smoke.codex)" pass "smoke.codex（2つ指定）"
@@ -1774,7 +1774,7 @@ t_save_keeps_on_failure() {
   dr refresh check
   assert_rc 0
   assert_eq "$(kv added.cursor.models)" new-model-x "引き継いだ一覧との違い（added）"
-  assert_eq "$(kv removed.cursor.models)" gemini-4-carbon-medium "引き継いだ一覧との違い（removed）"
+  assert_eq "$(kv removed.cursor.models)" gemini-4-neon-high "引き継いだ一覧との違い（removed）"
 }
 
 # --version が止まる場合（sleep で待つ、標準出力を持った子が残る）。9秒以内に、何も出さず 0 で戻る
@@ -1846,7 +1846,7 @@ t_save_prints_changes() {
   refresh_env
   export DEV_RELAY_TODAY=2026-10-01
   dr refresh save; assert_rc 0
-  export STUB_CURSOR_MODELS=$'auto - Auto (default)\ngrok-4.7-high - Grok 4.7 High\ngemini-4-carbon-medium - Gemini 4 Carbon Medium\nnew-model-x - New Model X'
+  export STUB_CURSOR_MODELS=$'auto - Auto (default)\ngrok-4.7-high - Grok 4.7 High\ngemini-4-neon-high - Gemini 4 Neon High\nnew-model-x - New Model X'
   dr refresh save
   assert_rc 0
   assert_eq "$(kv added.cursor.models)" new-model-x "added.cursor.models"
@@ -1891,9 +1891,9 @@ t_smoke_relative_config_dir() {
   smoke_env
   export DEV_RELAY_CONFIG_DIR=relcfg
   dr_in "$T" config metered auto; assert_rc 0
-  dr_in "$T" smoke --reviewer carbon --vendors cursor,google
+  dr_in "$T" smoke --reviewer neon-high --vendors cursor,google
   assert_rc 0
-  assert_eq "$(kv smoke.carbon)" pass "相対パスの設定フォルダで metered auto の carbon"
+  assert_eq "$(kv smoke.neon-high)" pass "相対パスの設定フォルダで metered auto の neon-high"
 }
 
 t_smoke_bad_reviewer_value() {
@@ -5214,7 +5214,7 @@ run_selected() {
 
 run_test "1 bin/dev-relay: 実行権限、--help、知らないサブコマンド" t_entry
 run_test "2 doctor: 設定が何も無ければ Claude になり、codex は vendor-not-allowed" t_doctor_unset
-run_test "2a doctor: 許可 openai なら codex、追加は claude、carbon の理由が出る" t_doctor_user_openai
+run_test "2a doctor: 許可 openai なら codex、追加は claude、neon-high の理由が出る" t_doctor_user_openai
 run_test "2b doctor: 利用者の既定 ask は source=ask で claude" t_doctor_ask
 run_test "2c doctor: リポジトリの設定 openai が ask より優先される" t_doctor_ask_repo
 run_test "2d doctor: リポジトリの設定 none が利用者の既定より優先される" t_doctor_repo_none
@@ -5228,8 +5228,8 @@ run_test "8 review code --dry-run: 依頼文を出し、CLI を呼ばない" t_d
 run_test "9 review code: Codex で結果ファイルが返る" t_review_codex
 run_test "10 review code --effort max: Codex に渡る" t_effort_max
 run_test "11 review code --extra: metered=off なら 3 と依頼文" t_extra_metered_off
-run_test "12 review code --extra: metered=auto なら Cursor（carbon）" t_extra_cursor
-run_test "13 review code --extra --reviewer carbon: 許可が無ければ 1" t_extra_reviewer_not_allowed
+run_test "12 review code --extra: metered=auto なら Cursor（neon-high）" t_extra_cursor
+run_test "13 review code --extra --reviewer neon-high: 許可が無ければ 1" t_extra_reviewer_not_allowed
 run_test "13a review code: 設定が無ければ Codex があっても外部へ送らない" t_unset_does_not_send
 run_test "14 Cursor がファイルを作ると 5" t_cursor_create
 run_test "14a Cursor が変更済みのファイルに追記すると 5" t_cursor_append
@@ -5308,7 +5308,7 @@ run_test "57 smoke: Codex が形式どおりの本文を返すと pass で、fin
 run_test "58 smoke: 指摘なし、項目の欠け、判定なし、仕込んだ不具合に触れないは fail で終了コード 2" t_smoke_codex_fail_reasons
 run_test "59 smoke: Codex が失敗すると fail と exit:10" t_smoke_codex_exit
 run_test "60 smoke: 許可の無い候補は skipped で CLI を呼ばず、--vendors で許可すると動く" t_smoke_vendors
-run_test "61 smoke: metered が off なら carbon は skipped、auto なら動く" t_smoke_metered
+run_test "61 smoke: metered が off なら neon-high は skipped、auto なら動く" t_smoke_metered
 run_test "62 smoke: Cursor が題材にファイルを作ると fail（exit:5）" t_smoke_cursor_changes_worktree
 run_test "63 smoke: claude は pending で、題材の差分を含む依頼文が残る" t_smoke_claude_pending
 run_test "64 smoke --reviewer: 指定した候補だけが出る。知らない id は 1" t_smoke_reviewer_filter
@@ -5328,7 +5328,7 @@ run_test "77 refresh notice: 記録を作っている間に refresh save が終�
 run_test "78 refresh notice: 記録が壊れていると、書き換えずに読めない旨を知らせ、save のあとは出ない" t_notice_corrupt_snapshot
 run_test "79 refresh save: 前回の記録からの変化を saved より前に出す" t_save_prints_changes
 run_test "80 smoke: GIT_DIR と GIT_WORK_TREE が別のリポジトリを指していても、そのリポジトリを変えない" t_smoke_ignores_git_env
-run_test "81 smoke: 設定フォルダが相対パスでも、metered auto の carbon が動く" t_smoke_relative_config_dir
+run_test "81 smoke: 設定フォルダが相対パスでも、metered auto の neon-high が動く" t_smoke_relative_config_dir
 run_test "82 smoke --reviewer: 空、空白、グロブは 1" t_smoke_bad_reviewer_value
 run_test "83 smoke: DEV_RELAY_TIMEOUT が不正なら 1" t_smoke_bad_timeout
 run_test "84 refresh notice --hook: --version が TERM を無視しても、perl の経路でも9秒以内に、何も出さず 0 で戻る" t_hook_returns_when_version_ignores_term alone
